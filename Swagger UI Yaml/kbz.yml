@@ -1,0 +1,401 @@
+swagger: "2.0"
+info:
+  description: "This is a Swagger server showing details about the REST APIs to be created by PSL and would be integrated with NewGen LOS, LDS modules. " 
+  version: "1.0.0"
+  title: "KBZ - APIs for Integration with LOS, LDS.."
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "ajaykumar_shukla@persistent.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "test.psl.io"
+basePath: "/v2"
+tags:
+- name: "KBZ"
+  description: "REST APIs to be created by PSL and would be integrated with NewGen LOS, LDS modules"
+  externalDocs:
+    description: "Find out more"
+    url: "http://swagger.io"
+schemes:
+- "https"
+- "http"
+paths:
+  /createClient:
+    post:
+      tags:
+      - "KBZ"
+      summary: "Add a new client to Mambu"
+      description: ""
+      operationId: "createClient"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Client object that needs to be added to Mambu"
+        required: true
+        schema:
+          $ref: "#/definitions/Client"
+      responses:
+        201:
+          description: "Client was successfully created"
+          schema:
+            $ref: "#/definitions/clientcreateresponse"
+          
+      security:
+      - petstore_auth:
+        - "write:clients"
+        - "read:clients"
+  /getClient/{clientEncodedKey}:
+    get:
+      tags:
+      - "KBZ"
+      summary: "Find client by client encoded Key or lastName/idDocument"
+      description: "Returns a single client object"
+      operationId: "getClientByEncodedKey"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "clientEncodedKey"
+        in: "path"
+        description: "client Encoded Key to send"
+        required: true
+        type: "string"
+      - name: "lastName"
+        in: "path"
+        description: "client's last name"
+        required: false
+        type: "string"
+      - name: "idDocument"
+        in: "path"
+        description: "client's NRC number"
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Client"
+        400:
+          description: "Invalid client Key supplied"
+ 
+  /clients/{clientEncodedKey}/loans:
+    get:
+      tags:
+      - "KBZ"
+      summary: "Get all the loans for a client with provided client encoded Key. This is needed for checking if a client has any existing loan account."
+      description: "Returns all the loan objects in an array"
+      operationId: "getLoansByClientEncodedKey"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "clientEncodedKey"
+        in: "path"
+        description: "client Encoded Key to send"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Loanaccount"
+        400:
+          description: "Invalid client Key supplied"
+	
+  /loans/{ID}/repayments:
+    get:
+      tags:
+      - "KBZ"
+      summary: "Allows you to retrieve repayment schedules for loan accounts. The full repayment schedule is returned including details about the state of the repayments as well as amounts that have been paid."
+      description: "Allows retrieving repayment schedules for a loan account."
+      operationId: "getLoansRepaymentScedules"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "LoanId"
+        in: "path"
+        description: "LoanId to be sent"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Loanrepayments"
+        400:
+          description: "Invalid Loan Id supplied"
+ 
+  /createLoanAccount:
+    post:
+      tags:
+      - "KBZ"
+      summary: "Create a loan account in Mambu for Bullet and EMI Fixed Date, Bullet and EMI Interval loan products"
+      description: ""
+      operationId: "createLoanAccount"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Loan object that needs to be added in Mambu"
+        required: true
+        schema:
+          $ref: "#/definitions/Loanaccount"
+      responses:
+        201:
+          description: "Loan account was successfully created"
+          schema:
+            $ref: "#/definitions/Loanaccount"
+			
+  /loans/{loanEncodedKey}/transactions:
+    post:
+      tags:
+      - "KBZ"
+      summary: "Disburse a loan account with a few notes with booking date and repayments date."
+      description: "Disburse a loan account."
+      operationId: "disburseLoan"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Object that needs to be send to Mambu for disbursing a loan."
+        required: true
+        schema:
+          $ref: "#/definitions/loandisbursement"
+      responses:
+        201:
+          description: "Loan account was successfully disbursed."
+          schema:
+            $ref: "#/definitions/Loanaccount"
+ 
+definitions:
+  Client:
+    type: "object"
+    required:
+    - "firstName"
+    - "lastName"
+    - "birthDate"
+    - "cellPhone"
+    properties:
+      firstName:
+        type: "string"
+      lastName:
+        type: "string"
+      middleName:
+        type: "string"	
+      email:
+        type: "string"
+      cellPhone:
+        type: "string"
+      gender:
+        type: "string"
+      birthDate:
+        type: "string"	
+      encodedKey:
+        type: "string"
+      addresses:
+        type: "array"
+        items:
+          $ref: "#/definitions/address"
+      bankInfo:
+        type: "array"
+        items:
+          $ref: "#/definitions/bankInfo"
+      customInformation:
+        type: "array"
+        items:
+          $ref: "#/definitions/customInfo"
+  address:
+    type: "object"
+    properties:
+      line1:
+        type: "string"
+      line2:
+        type: "string"
+      city:
+        type: "string"
+      region:
+        type: "string"
+      zipcode:
+        type: "string"
+      country:
+        type: "string"
+  loandisbursement:
+    type: "object"
+    properties:
+      type:
+        type: "string"
+      valueDate:
+        type: "string"
+      firstRepaymentDate:
+        type: "string"
+      notes:
+        type: "string"
+  customInfo:
+    type: "object"
+    properties:
+      value:
+        type: "string"
+      customFieldID:
+        type: "string"
+  bankInfo:
+    type: "object"
+    properties:
+      bankName:
+        type: "string"
+      branchName:
+        type: "string"
+      accountNumber:
+        type: "string"
+  clientcreateresponse: 
+      type: "object"
+      properties:
+        data:
+          $ref: "#/definitions/dataresponse"
+  dataresponse:
+    type: "object"
+    properties:
+      customerLmsId:
+        type: "string"
+      customerState:
+        type: "string"
+      status:
+        type: "string"
+      encodedKey:
+        type: "string"
+  Loanaccount:
+    type: "object"
+    required:
+    - "accountHolderKey"
+    - "loanName"
+    - "loanAmount"
+    - "interestRate"
+    - "interestChargeFrequency"
+    - "interestCalculationMethod"
+    - "principalRepaymentInterval"
+    - "repaymentInstallments"
+    - "gracePeriod"
+    - "gracePeriodType"
+    - "repaymentPeriodCount"
+    - "repaymentPeriodUnit"
+    - "disbursementDetails"
+    properties:
+      encodedKey:
+        type: "string"
+      id:
+        type: "string"
+      accountHolderKey:
+        type: "string"	
+      lastAccountAppraisalDate:
+        type: "string"
+      accountHolderType:
+        type: "string"
+      creationDate:
+        type: "string"
+      disbursementDate:
+        type: "string"
+      accountState:
+        type: "string"	
+      loanName:
+        type: "string"
+      loanAmount:
+        type: "string"
+      principalDue:
+        type: "string"
+      principalPaid:
+        type: "string"	
+      principalBalance:
+        type: "string"
+      interestDue:
+        type: "string"
+      interestPaid:
+        type: "string"
+      interestBalance:
+        type: "string"	
+      feesDue:
+        type: "string"
+      feesPaid:
+        type: "string"
+      penaltyDue:
+        type: "string"	
+      penaltyPaid:
+        type: "string"
+      repaymentPeriodCount:
+        type: "string"
+      repaymentPeriodUnit:
+        type: "string"
+      repaymentInstallments:
+        type: "string"	
+      gracePeriod:
+        type: "string"
+      gracePeriodType:
+        type: "string"
+      interestRate:
+        type: "string"
+      interestChargeFrequency:
+        type: "string"	
+      interestCalculationMethod:
+        type: "string"
+      notes:
+        type: "string"
+      principalRepaymentInterval:
+        type: "string"	
+      interestRateSource:
+        type: "string"
+      interestAdjustment:
+        type: "string"
+      accruedInterest:
+        type: "string"
+      arrearsTolerancePeriod:
+        type: "string"	
+      customInformation:
+        type: "array"
+        items:
+          $ref: "#/definitions/customInfo"
+      disbursementDetails:
+        type: "array"
+        items:
+          $ref: "#/definitions/disbursementDetails"
+  disbursementDetails:
+    type: "object"
+    properties:
+      expectedDisbursementDate:
+        type: "string"
+      firstRepaymentDate:
+        type: "string"
+  Loanrepayments:
+    type: "array"
+    items:
+       $ref: "#/definitions/repayment"
+  repayment:
+    type: "object"
+    properties:
+      encodedKey:
+        type: "string"
+      parentAccountKey:
+        type: "string"
+      dueDate:
+        type: "string"	
+      repaidDate:
+        type: "string"
+      lastPaidDate:
+        type: "string"
+      principalDue:
+        type: "string"	
+      principalPaid:
+        type: "string"
+      interestDue:
+        type: "string"
+      interestPaid:
+        type: "string"
+      state:
+        type: "string"	
+externalDocs:
+  description: "Find out more about Swagger"
+  url: "http://swagger.io"
